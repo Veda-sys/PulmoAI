@@ -1,0 +1,54 @@
+Disease Name: Lung Nodule
+
+Overview:
+A lung nodule is a small round or oval growth in the lung. It is usually found during chest X-rays or CT scans. Lung nodules are common and many are noncancerous. A nodule is defined as a spot in the lung that is smaller than 3 centimeters in diameter.
+
+Symptoms:
+Most lung nodules do not cause symptoms. When symptoms occur they may include:
+Persistent cough
+Shortness of breath
+Chest discomfort
+Coughing up blood in rare cases
+
+Causes:
+Old infections
+Tuberculosis
+Fungal infections
+Inflammation
+Scar tissue
+Benign tumors
+Early lung cancer
+
+Risk Factors:
+Smoking
+Exposure to secondhand smoke
+Air pollution
+Exposure to harmful chemicals
+Family history of lung disease
+
+Diagnosis:
+Chest X-ray
+CT scan
+PET scan
+Biopsy
+Sputum tests
+
+Treatment:
+Monitoring with regular scans
+Medication if infection is present
+Surgery if cancer is suspected
+Radiation or chemotherapy if malignant
+
+Complications:
+Growth of the nodule
+Spread if cancerous
+Breathing issues if large or multiple
+
+Prevention and Precautions:
+Avoid smoking
+Reduce exposure to pollution
+Use protective masks in hazardous areas
+Regular medical checkups for high-risk individuals
+
+Medical Disclaimer:
+This information is for educational purposes only and not a substitute for professional medical advice.

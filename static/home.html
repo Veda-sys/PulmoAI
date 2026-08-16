@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PulmoAI — Pulmonary AI Diagnostics</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600;1,700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  /* Sunset palette */
+  --cream:#fdf6ee;
+  --cream2:#fef9f3;
+  --peach:#ffcba4;
+  --peach2:#ffb380;
+  --coral:#ff8c69;
+  --coral2:#ff6b47;
+  --gold:#f9c74f;
+  --gold2:#f4a220;
+  --rose:#ffadb0;
+  --rose2:#ff8589;
+  --sky:#ffe0b2;
+  --lavender:#ffd7c4;
+
+  --text:#3d2c1e;
+  --text2:#6b4c36;
+  --muted:#a07858;
+  --white:#ffffff;
+
+  --card:#ffffff;
+  --card-border:#f5dcc8;
+  --card-shadow: 0 4px 24px rgba(255,140,105,0.12);
+
+  --font:'DM Sans',sans-serif;
+  --serif:'Playfair Display',serif;
+  --mono:'DM Mono',monospace;
+
+  --radius:18px;
+  --radius-sm:12px;
+}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--cream);
+  color:var(--text);
+  font-family:var(--font);
+  font-weight:400;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ── SOFT BACKGROUND TEXTURE ── */
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 10% 0%, rgba(249,199,79,0.18) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 90% 10%, rgba(255,140,105,0.15) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 50% 100%, rgba(255,173,176,0.12) 0%, transparent 50%),
+    radial-gradient(ellipse 40% 50% at 0% 70%, rgba(255,203,164,0.2) 0%, transparent 50%);
+  pointer-events:none;z-index:0;
+}
+body::after{
+  content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23f4a220' fill-opacity='0.04'%3E%3Ccircle cx='7' cy='7' r='1.5'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  pointer-events:none;z-index:0;
+}
+
+/* ── FLOATING BLOBS ── */
+.blob{position:fixed;border-radius:50%;filter:blur(70px);pointer-events:none;z-index:0;opacity:.55;}
+.blob-1{width:500px;height:500px;background:radial-gradient(circle,rgba(249,199,79,0.35),transparent);top:-150px;left:-100px;animation:float1 18s ease-in-out infinite;}
+.blob-2{width:420px;height:420px;background:radial-gradient(circle,rgba(255,140,105,0.3),transparent);top:-80px;right:-80px;animation:float2 22s ease-in-out infinite;}
+.blob-3{width:350px;height:350px;background:radial-gradient(circle,rgba(255,173,176,0.28),transparent);bottom:10%;left:5%;animation:float3 16s ease-in-out infinite;}
+.blob-4{width:300px;height:300px;background:radial-gradient(circle,rgba(255,203,164,0.3),transparent);bottom:5%;right:10%;animation:float1 20s ease-in-out infinite reverse;}
+@keyframes float1{0%,100%{transform:translate(0,0) scale(1);}33%{transform:translate(30px,-20px) scale(1.05);}66%{transform:translate(-15px,15px) scale(0.97);}}
+@keyframes float2{0%,100%{transform:translate(0,0) scale(1);}33%{transform:translate(-25px,20px) scale(1.08);}66%{transform:translate(20px,-10px) scale(0.95);}}
+@keyframes float3{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(20px,-25px) scale(1.06);}}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.5;}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(28px);}to{opacity:1;transform:none;}}
+@keyframes scan{0%{top:-2px;}100%{top:100%;}}
+@keyframes spin{to{transform:rotate(360deg);}}
+@keyframes modalIn{from{opacity:0;transform:translateY(-16px) scale(0.97);}to{opacity:1;transform:none;}}
+@keyframes shimmer{0%{background-position:-200% center;}100%{background-position:200% center;}}
+
+/* ── NAV ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  background:rgba(253,246,238,0.85);
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid rgba(244,162,32,0.2);
+  box-shadow:0 1px 20px rgba(255,140,105,0.08);
+}
+.nav-in{max-width:1200px;margin:0 auto;padding:0 32px;height:68px;display:flex;align-items:center;justify-content:space-between;}
+.nav-logo{display:flex;align-items:center;gap:12px;text-decoration:none;}
+.nav-logo-icon{
+  width:40px;height:40px;
+  background:linear-gradient(135deg,var(--coral),var(--gold));
+  border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;
+  box-shadow:0 4px 16px rgba(255,140,105,0.35);
+}
+.nav-logo-name{font-family:var(--serif);font-size:20px;font-weight:700;color:var(--text);}
+.nav-links{display:flex;gap:2px;}
+.nav-link{
+  color:var(--muted);font-size:14px;font-weight:500;
+  padding:7px 14px;border-radius:8px;text-decoration:none;
+  transition:color .2s,background .2s;
+}
+.nav-link:hover,.nav-link.active{color:var(--coral2);background:rgba(255,140,105,0.08);}
+.nav-right{display:flex;align-items:center;gap:10px;}
+.status-pill{
+  display:flex;align-items:center;gap:7px;
+  background:rgba(249,199,79,0.15);
+  border:1px solid rgba(244,162,32,0.3);
+  border-radius:20px;padding:5px 13px;
+  font-family:var(--mono);font-size:11px;color:var(--gold2);
+}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--gold2);box-shadow:0 0 6px var(--gold2);animation:pulse 2s ease-in-out infinite;}
+.btn-signin-nav{
+  background:transparent;
+  border:1.5px solid var(--card-border);
+  border-radius:10px;color:var(--text2);
+  font-family:var(--font);font-size:13px;font-weight:500;
+  padding:7px 18px;cursor:pointer;
+  transition:all .2s;
+}
+.btn-signin-nav:hover{border-color:var(--coral);color:var(--coral2);}
+.btn-signup-nav{
+  background:linear-gradient(135deg,var(--coral),var(--gold));
+  border:none;border-radius:10px;
+  color:var(--white);
+  font-family:var(--font);font-size:13px;font-weight:600;
+  padding:8px 20px;cursor:pointer;
+  box-shadow:0 4px 16px rgba(255,140,105,0.3);
+  transition:all .2s;
+}
+.btn-signup-nav:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(255,140,105,0.4);}
+.nav-user-pill{display:none;align-items:center;gap:10px;}
+.nav-user-pill.visible{display:flex;}
+.nav-buttons.hidden{display:none;}
+.user-chip{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);}
+.avatar{
+  width:32px;height:32px;border-radius:50%;
+  background:linear-gradient(135deg,var(--coral),var(--gold));
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;border:2px solid var(--white);
+  box-shadow:0 2px 8px rgba(255,140,105,0.25);
+}
+.btn-open-app{
+  background:linear-gradient(135deg,var(--coral),var(--gold));
+  border:none;border-radius:10px;
+  color:var(--white);font-family:var(--font);font-size:13px;font-weight:600;
+  padding:8px 18px;cursor:pointer;text-decoration:none;display:inline-block;
+  box-shadow:0 3px 12px rgba(255,140,105,0.3);
+  transition:all .2s;
+}
+.btn-open-app:hover{transform:translateY(-1px);}
+.btn-logout-nav{
+  background:transparent;border:1.5px solid rgba(255,133,137,.35);
+  border-radius:9px;color:var(--rose2);
+  font-family:var(--font);font-size:12px;padding:6px 12px;cursor:pointer;transition:all .2s;
+}
+.btn-logout-nav:hover{border-color:var(--rose2);background:rgba(255,173,176,.1);}
+
+/* ── MODAL ── */
+.modal-overlay{
+  position:fixed;inset:0;
+  background:rgba(61,44,30,0.35);
+  backdrop-filter:blur(8px);
+  z-index:200;display:none;
+  align-items:center;justify-content:center;
+  padding:20px;
+}
+.modal-overlay.open{display:flex;}
+.modal{
+  background:var(--cream2);
+  border:1.5px solid var(--card-border);
+  border-radius:24px;
+  padding:36px 32px;
+  width:100%;max-width:420px;
+  position:relative;
+  box-shadow:0 24px 60px rgba(255,140,105,0.18),0 4px 20px rgba(61,44,30,0.1);
+  animation:modalIn .3s ease;
+}
+.modal-stripe{
+  position:absolute;top:0;left:0;right:0;height:4px;
+  background:linear-gradient(90deg,var(--gold),var(--coral),var(--rose));
+  border-radius:24px 24px 0 0;
+}
+.modal-close{
+  position:absolute;top:14px;right:14px;
+  background:rgba(255,140,105,0.1);border:none;
+  border-radius:8px;color:var(--muted);
+  width:30px;height:30px;cursor:pointer;font-size:16px;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;
+}
+.modal-close:hover{background:rgba(255,133,137,.2);color:var(--rose2);}
+.modal-tabs{
+  display:flex;background:rgba(255,140,105,0.08);
+  border:1.5px solid var(--card-border);
+  border-radius:12px;padding:4px;margin-bottom:26px;
+}
+.modal-tab{
+  flex:1;padding:9px;border:none;background:none;
+  color:var(--muted);font-family:var(--font);font-size:14px;font-weight:500;
+  border-radius:9px;cursor:pointer;transition:all .2s;
+}
+.modal-tab.active{
+  background:linear-gradient(135deg,var(--coral),var(--gold));
+  color:var(--white);font-weight:600;
+  box-shadow:0 3px 12px rgba(255,140,105,0.3);
+}
+.mpanel{display:none;}
+.mpanel.active{display:block;animation:fadeUp .25s ease;}
+.modal-title{font-family:var(--serif);font-size:22px;font-weight:700;color:var(--text);margin-bottom:4px;}
+.modal-sub{font-size:13px;color:var(--muted);margin-bottom:22px;line-height:1.5;}
+.field{margin-bottom:14px;}
+.flabel{display:block;font-size:10px;font-family:var(--mono);letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.input-wrap{position:relative;}
+.ico{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none;}
+input[type=text],input[type=email],input[type=password]{
+  width:100%;
+  background:var(--white);
+  border:1.5px solid var(--card-border);
+  border-radius:10px;
+  color:var(--text);
+  font-family:var(--font);font-size:14px;
+  padding:12px 14px 12px 40px;
+  outline:none;
+  transition:border-color .2s,box-shadow .2s;
+}
+input:focus{border-color:var(--coral);box-shadow:0 0 0 3px rgba(255,140,105,0.15);}
+input.err{border-color:var(--rose2)!important;}
+input::placeholder{color:rgba(160,120,88,0.5);}
+.err-msg{font-size:11px;color:var(--rose2);margin-top:4px;font-family:var(--mono);display:none;}
+.err-msg.show{display:block;}
+.row-between{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;font-size:13px;}
+.chk-row{display:flex;align-items:center;gap:7px;}
+.chk-row input{width:auto;padding:0;border:none;accent-color:var(--coral);}
+.chk-row label{color:var(--muted);cursor:pointer;}
+.forgot{color:var(--coral2);text-decoration:none;font-family:var(--mono);font-size:12px;}
+.forgot:hover{color:var(--gold2);}
+.btn-modal{
+  width:100%;border:none;border-radius:11px;
+  font-family:var(--font);font-size:15px;font-weight:600;
+  padding:13px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  margin-bottom:12px;transition:all .2s;
+}
+.btn-modal-primary{
+  background:linear-gradient(135deg,var(--coral),var(--gold));
+  color:var(--white);
+  box-shadow:0 4px 18px rgba(255,140,105,0.35);
+}
+.btn-modal-primary:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 24px rgba(255,140,105,0.45);}
+.btn-modal-primary:disabled{opacity:.5;cursor:not-allowed;}
+.btn-modal-demo{
+  background:rgba(255,140,105,0.08);
+  border:1.5px solid var(--card-border);
+  color:var(--text2);
+}
+.btn-modal-demo:hover{border-color:var(--coral);color:var(--coral2);background:rgba(255,140,105,0.12);}
+.divider{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.div-line{flex:1;height:1px;background:var(--card-border);}
+.div-text{font-size:11px;font-family:var(--mono);color:var(--muted);}
+.switch-txt{text-align:center;font-size:13px;color:var(--muted);margin-top:14px;}
+.switch-txt a{color:var(--coral2);cursor:pointer;font-weight:500;}
+.switch-txt a:hover{color:var(--gold2);}
+.strength-bar{height:3px;background:var(--card-border);border-radius:2px;margin-top:6px;overflow:hidden;}
+.strength-fill{height:100%;border-radius:2px;transition:width .3s,background .3s;width:0;}
+
+/* ── PAGE ── */
+.wrap{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:0 32px 120px;}
+
+/* HERO */
+.hero{padding:140px 0 80px;text-align:center;}
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(249,199,79,0.2);
+  border:1.5px solid rgba(244,162,32,0.3);
+  border-radius:20px;padding:6px 16px;
+  font-family:var(--mono);font-size:11px;color:var(--gold2);
+  letter-spacing:1px;margin-bottom:28px;
+  animation:fadeUp .6s ease both;
+}
+.hero-title{
+  font-family:var(--serif);
+  font-size:72px;font-weight:800;
+  color:var(--text);
+  line-height:1.05;letter-spacing:-1px;
+  margin-bottom:24px;
+  animation:fadeUp .6s ease .1s both;
+}
+.hero-title .gradient-text{
+  background:linear-gradient(135deg,var(--coral2) 0%,var(--gold) 50%,var(--rose2) 100%);
+  background-size:200% auto;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  animation:shimmer 4s linear infinite;
+}
+.hero-desc{
+  font-size:18px;color:var(--text2);line-height:1.75;
+  max-width:560px;margin:0 auto 48px;
+  animation:fadeUp .6s ease .2s both;
+}
+.hero-btns{
+  display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;
+  animation:fadeUp .6s ease .3s both;
+}
+.btn-primary-hero{
+  background:linear-gradient(135deg,var(--coral),var(--gold));
+  border:none;border-radius:14px;
+  color:var(--white);font-family:var(--font);font-size:16px;font-weight:600;
+  padding:16px 36px;cursor:pointer;
+  display:flex;align-items:center;gap:10px;
+  box-shadow:0 6px 28px rgba(255,140,105,0.38);
+  transition:all .25s;text-decoration:none;
+}
+.btn-primary-hero:hover{transform:translateY(-2px);box-shadow:0 10px 36px rgba(255,140,105,0.48);}
+.btn-outline-hero{
+  background:var(--white);
+  border:1.5px solid var(--card-border);
+  border-radius:14px;color:var(--text2);
+  font-family:var(--font);font-size:16px;font-weight:500;
+  padding:16px 36px;cursor:pointer;
+  display:flex;align-items:center;gap:10px;
+  transition:all .2s;text-decoration:none;
+  box-shadow:0 2px 12px rgba(255,140,105,0.08);
+}
+.btn-outline-hero:hover{border-color:var(--coral);color:var(--coral2);transform:translateY(-1px);}
+
+/* STATS */
+.stats-row{
+  display:flex;align-items:center;justify-content:center;gap:0;
+  margin-top:60px;padding-top:44px;
+  border-top:1.5px solid rgba(244,162,32,0.15);
+  animation:fadeUp .6s ease .4s both;
+  flex-wrap:wrap;
+}
+.stat-item{
+  flex:1;min-width:120px;text-align:center;
+  padding:0 28px;
+  border-right:1.5px solid rgba(244,162,32,0.15);
+}
+.stat-item:last-child{border-right:none;}
+.stat-val{font-family:var(--serif);font-size:36px;font-weight:700;}
+.stat-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-top:4px;font-family:var(--mono);}
+
+/* SECTIONS */
+section{margin-bottom:100px;}
+.sec-header{text-align:center;margin-bottom:50px;}
+.sec-tag{
+  display:inline-block;font-family:var(--mono);font-size:11px;
+  letter-spacing:2px;text-transform:uppercase;
+  padding:4px 14px;border-radius:20px;margin-bottom:14px;
+}
+.tag-coral{background:rgba(255,140,105,0.12);border:1.5px solid rgba(255,107,71,0.25);color:var(--coral2);}
+.tag-gold{background:rgba(249,199,79,0.15);border:1.5px solid rgba(244,162,32,0.3);color:var(--gold2);}
+.tag-rose{background:rgba(255,173,176,0.2);border:1.5px solid rgba(255,133,137,.3);color:var(--rose2);}
+.sec-title{font-family:var(--serif);font-size:40px;font-weight:700;color:var(--text);letter-spacing:-.5px;}
+.sec-title span{background:linear-gradient(135deg,var(--coral2),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sec-desc{margin-top:10px;font-size:16px;color:var(--text2);max-width:480px;line-height:1.65;margin-left:auto;margin-right:auto;}
+
+/* MODEL CARDS */
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;}
+
+.model-card{
+  background:var(--white);
+  border:1.5px solid var(--card-border);
+  border-radius:var(--radius);
+  padding:28px;
+  position:relative;overflow:hidden;
+  transition:transform .25s,box-shadow .25s;
+  box-shadow:var(--card-shadow);
+}
+.model-card:hover{transform:translateY(-5px);box-shadow:0 12px 40px rgba(255,140,105,0.18);}
+.model-card-top-stripe{position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--radius) var(--radius) 0 0;}
+.stripe-coral{background:linear-gradient(90deg,var(--coral),var(--gold));}
+.stripe-gold{background:linear-gradient(90deg,var(--gold),var(--rose));}
+.stripe-rose{background:linear-gradient(90deg,var(--rose),var(--coral));}
+.stripe-peach{background:linear-gradient(90deg,var(--peach),var(--coral));}
+.stripe-sky{background:linear-gradient(90deg,var(--gold),var(--peach));}
+.stripe-lavender{background:linear-gradient(90deg,var(--rose),var(--gold));}
+
+.mc-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;}
+.mc-icon{
+  width:50px;height:50px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+  flex-shrink:0;
+}
+.mci-coral{background:linear-gradient(135deg,rgba(255,140,105,0.18),rgba(255,107,71,0.1));}
+.mci-gold{background:linear-gradient(135deg,rgba(249,199,79,0.22),rgba(244,162,32,0.12));}
+.mci-peach{background:linear-gradient(135deg,rgba(255,203,164,0.3),rgba(255,179,128,0.15));}
+.mci-rose{background:linear-gradient(135deg,rgba(255,173,176,0.25),rgba(255,133,137,.12));}
+.mci-sky{background:linear-gradient(135deg,rgba(255,224,178,0.3),rgba(249,199,79,0.15));}
+.mci-mix{background:linear-gradient(135deg,rgba(255,140,105,0.15),rgba(249,199,79,0.15));}
+
+.mc-badge{
+  font-family:var(--mono);font-size:10px;
+  padding:3px 10px;border-radius:20px;font-weight:500;letter-spacing:.5px;
+}
+.badge-coral{background:rgba(255,140,105,0.12);border:1px solid rgba(255,107,71,.25);color:var(--coral2);}
+.badge-gold{background:rgba(249,199,79,0.15);border:1px solid rgba(244,162,32,.3);color:var(--gold2);}
+.badge-rose{background:rgba(255,173,176,0.2);border:1px solid rgba(255,133,137,.3);color:var(--rose2);}
+.badge-peach{background:rgba(255,203,164,0.25);border:1px solid rgba(255,179,128,.35);color:#c07840;}
+
+.mc-name{font-family:var(--serif);font-size:19px;font-weight:700;color:var(--text);margin-bottom:3px;}
+.mc-role{font-size:10px;font-family:var(--mono);color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;}
+.mc-desc{font-size:13px;color:var(--text2);line-height:1.65;margin-bottom:16px;}
+.mc-tags{display:flex;flex-wrap:wrap;gap:5px;}
+.mc-tag{
+  background:var(--cream);border:1px solid var(--card-border);
+  border-radius:6px;padding:3px 9px;
+  font-size:11px;font-family:var(--mono);color:var(--muted);
+}
+.mc-stat{
+  display:flex;align-items:center;gap:10px;
+  background:var(--cream);border-radius:10px;
+  padding:11px 14px;margin-top:14px;
+}
+.ms-val{font-family:var(--serif);font-size:20px;font-weight:700;}
+.ms-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-family:var(--mono);}
+.ms-bar{flex:1;height:4px;background:var(--card-border);border-radius:2px;overflow:hidden;margin-top:4px;}
+.ms-fill{height:100%;border-radius:2px;transition:width 1.4s cubic-bezier(.34,1.56,.64,1);}
+.fill-coral{background:linear-gradient(90deg,var(--coral),var(--gold));}
+.fill-gold{background:linear-gradient(90deg,var(--gold),var(--peach));}
+.fill-rose{background:linear-gradient(90deg,var(--rose),var(--coral));}
+
+/* PIPELINE */
+.pipe-card{
+  background:var(--white);
+  border:1.5px solid var(--card-border);
+  border-radius:var(--radius);
+  padding:40px;
+  position:relative;overflow:hidden;
+  box-shadow:var(--card-shadow);
+}
+.pipe-stripe{position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--gold),var(--coral),var(--rose),var(--gold));border-radius:var(--radius) var(--radius) 0 0;}
+.pipe-steps{display:flex;align-items:stretch;}
+.pipe-step{flex:1;padding:20px 16px;position:relative;text-align:center;}
+.pipe-step:not(:last-child)::after{
+  content:'→';
+  position:absolute;right:-14px;top:50%;transform:translateY(-50%);
+  font-size:20px;color:var(--peach2);z-index:1;
+}
+.ps-icon{
+  width:52px;height:52px;border-radius:15px;
+  display:flex;align-items:center;justify-content:center;font-size:24px;
+  margin:0 auto 12px;
+}
+.psi-1{background:linear-gradient(135deg,rgba(249,199,79,.2),rgba(244,162,32,.1));border:1.5px solid rgba(244,162,32,.2);}
+.psi-2{background:linear-gradient(135deg,rgba(255,203,164,.25),rgba(255,179,128,.12));border:1.5px solid rgba(255,140,105,.2);}
+.psi-3{background:linear-gradient(135deg,rgba(255,140,105,.18),rgba(255,107,71,.1));border:1.5px solid rgba(255,107,71,.2);}
+.psi-4{background:linear-gradient(135deg,rgba(255,173,176,.22),rgba(255,133,137,.1));border:1.5px solid rgba(255,133,137,.2);}
+.psi-5{background:linear-gradient(135deg,rgba(249,199,79,.18),rgba(255,140,105,.12));border:1.5px solid rgba(255,140,105,.18);}
+.ps-name{font-family:var(--serif);font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px;}
+.ps-model{font-size:11px;font-family:var(--mono);color:var(--coral2);margin-bottom:4px;}
+.ps-desc{font-size:11px;color:var(--muted);line-height:1.5;}
+.pipe-scan{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--coral),var(--gold),transparent);animation:scan 5s linear infinite;opacity:.4;}
+
+/* PATHOLOGIES */
+.path-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;}
+.path-chip{
+  background:var(--white);
+  border:1.5px solid var(--card-border);
+  border-radius:12px;padding:12px 7px;
+  text-align:center;font-size:11px;
+  font-family:var(--mono);color:var(--muted);
+  cursor:default;
+  transition:all .2s;
+  box-shadow:0 2px 8px rgba(255,140,105,.06);
+}
+.path-chip:hover{border-color:var(--coral);color:var(--coral2);background:rgba(255,140,105,.04);transform:translateY(-2px);}
+.path-chip-icon{font-size:18px;display:block;margin-bottom:5px;}
+
+/* FEATURES */
+.feat-card{
+  background:var(--white);
+  border:1.5px solid var(--card-border);
+  border-radius:var(--radius);
+  padding:26px;
+  display:flex;gap:18px;align-items:flex-start;
+  transition:transform .2s,box-shadow .2s;
+  box-shadow:0 2px 12px rgba(255,140,105,.07);
+  position:relative;overflow:hidden;
+}
+.feat-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(249,199,79,.04),rgba(255,140,105,.04));opacity:0;transition:opacity .25s;}
+.feat-card:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(255,140,105,.14);}
+.feat-card:hover::before{opacity:1;}
+.feat-icon{
+  width:46px;height:46px;border-radius:13px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;flex-shrink:0;
+}
+.fi-coral{background:linear-gradient(135deg,rgba(255,140,105,.2),rgba(255,107,71,.1));}
+.fi-gold{background:linear-gradient(135deg,rgba(249,199,79,.22),rgba(244,162,32,.1));}
+.fi-rose{background:linear-gradient(135deg,rgba(255,173,176,.22),rgba(255,133,137,.1));}
+.fi-peach{background:linear-gradient(135deg,rgba(255,203,164,.28),rgba(255,179,128,.14));}
+.feat-title{font-family:var(--serif);font-size:16px;font-weight:600;color:var(--text);margin-bottom:5px;}
+.feat-desc{font-size:13px;color:var(--text2);line-height:1.6;}
+
+/* CTA */
+.cta-section{
+  background:linear-gradient(135deg,rgba(255,140,105,.12) 0%,rgba(249,199,79,.1) 50%,rgba(255,173,176,.1) 100%);
+  border:1.5px solid rgba(244,162,32,.2);
+  border-radius:24px;padding:64px;text-align:center;
+  position:relative;overflow:hidden;
+  box-shadow:0 4px 28px rgba(255,140,105,.1);
+}
+.cta-section::before{
+  content:'';position:absolute;
+  top:-80px;right:-80px;width:300px;height:300px;
+  background:radial-gradient(circle,rgba(249,199,79,.25),transparent);
+  border-radius:50%;
+}
+.cta-section::after{
+  content:'';position:absolute;
+  bottom:-60px;left:-60px;width:250px;height:250px;
+  background:radial-gradient(circle,rgba(255,140,105,.2),transparent);
+  border-radius:50%;
+}
+.cta-title{font-family:var(--serif);font-size:44px;font-weight:700;color:var(--text);letter-spacing:-.5px;margin-bottom:14px;position:relative;z-index:1;}
+.cta-desc{font-size:16px;color:var(--text2);line-height:1.65;max-width:460px;margin:0 auto 36px;position:relative;z-index:1;}
+.cta-btns{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;position:relative;z-index:1;}
+.btn-cta-main{
+  background:linear-gradient(135deg,var(--coral),var(--gold));
+  border:none;border-radius:14px;color:var(--white);
+  font-family:var(--font);font-size:16px;font-weight:600;
+  padding:16px 36px;cursor:pointer;
+  display:flex;align-items:center;gap:9px;text-decoration:none;
+  box-shadow:0 6px 28px rgba(255,140,105,.35);
+  transition:all .2s;
+}
+.btn-cta-main:hover{transform:translateY(-2px);box-shadow:0 10px 36px rgba(255,140,105,.45);}
+
+/* FOOTER */
+footer{
+  border-top:1.5px solid rgba(244,162,32,.15);
+  padding:32px;max-width:1200px;margin:0 auto;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
+}
+.footer-brand{display:flex;align-items:center;gap:9px;}
+.footer-icon{width:30px;height:30px;background:linear-gradient(135deg,var(--coral),var(--gold));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 2px 8px rgba(255,140,105,.25);}
+.footer-name{font-family:var(--serif);font-size:16px;font-weight:700;color:var(--text);}
+.footer-copy{font-size:11px;font-family:var(--mono);color:var(--muted);}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:28px;left:50%;
+  transform:translateX(-50%) translateY(16px);
+  background:var(--white);
+  border:1.5px solid var(--card-border);
+  border-radius:14px;padding:12px 24px;
+  font-size:13px;color:var(--text);
+  box-shadow:0 8px 32px rgba(255,140,105,.2);
+  z-index:999;opacity:0;transition:all .3s;
+  pointer-events:none;white-space:nowrap;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.ok{border-color:rgba(244,162,32,.4);color:var(--gold2);}
+.toast.fail{border-color:rgba(255,133,137,.4);color:var(--rose2);}
+
+@media(max-width:960px){.grid3{grid-template-columns:1fr 1fr;}.hero-title{font-size:48px;}.pipe-steps{flex-direction:column;}.pipe-step:not(:last-child)::after{content:'↓';right:auto;left:50%;top:auto;bottom:-14px;transform:translateX(-50%);}.path-grid{grid-template-columns:repeat(4,1fr);}.grid2{grid-template-columns:1fr;}}
+@media(max-width:600px){.grid3{grid-template-columns:1fr;}.hero-title{font-size:36px;}.stats-row{gap:16px;}.cta-title{font-size:30px;}.path-grid{grid-template-columns:repeat(3,1fr);}.nav-links{display:none;}.cta-section{padding:40px 24px;}}
+::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:var(--cream);}::-webkit-scrollbar-thumb{background:var(--peach);border-radius:3px;}
+</style>
+</head>
+<body>
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+<div class="blob blob-3"></div>
+<div class="blob blob-4"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-in">
+    <a href="/" class="nav-logo">
+      <div class="nav-logo-icon">🫁</div>
+      <div class="nav-logo-name">PulmoAI</div>
+    </a>
+    <div class="nav-links">
+      <a href="#models"      class="nav-link">Models</a>
+      <a href="#pipeline"    class="nav-link">Pipeline</a>
+      <a href="#pathologies" class="nav-link">Pathologies</a>
+      <a href="#features"    class="nav-link">Features</a>
+    </div>
+    <div class="nav-right">
+      <div class="status-pill"><div class="status-dot"></div>Online</div>
+      <div class="nav-buttons" id="nav-buttons" style="display:flex;gap:8px;">
+        <button class="btn-signin-nav" onclick="openModal('login')">Sign In</button>
+        <button class="btn-signup-nav" onclick="openModal('signup')">Sign Up →</button>
+      </div>
+      <div class="nav-user-pill" id="nav-user-pill">
+        <div class="user-chip"><div class="avatar">👤</div><span id="nav-name"></span></div>
+        <a href="/app" class="btn-open-app">⚡ Open App</a>
+        <button class="btn-logout-nav" onclick="doLogout()">Sign Out</button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- AUTH MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeIfBg(event)">
+  <div class="modal" id="modal">
+    <div class="modal-stripe"></div>
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-tabs">
+      <button class="modal-tab active" id="mt-login" onclick="switchModal('login')">Sign In</button>
+      <button class="modal-tab" id="mt-signup" onclick="switchModal('signup')">Sign Up</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div class="mpanel active" id="mp-login">
+      <div class="modal-title">Welcome back ☀️</div>
+      <div class="modal-sub">Sign in to access the analysis tool.</div>
+      <div class="field"><label class="flabel">Email</label><div class="input-wrap"><span class="ico">✉️</span><input type="email" id="l-email" placeholder="doctor@hospital.com" autocomplete="email"/></div></div>
+      <div class="field"><label class="flabel">Password</label><div class="input-wrap"><span class="ico">🔒</span><input type="password" id="l-pass" placeholder="••••••••" autocomplete="current-password"/></div><div class="err-msg" id="l-err"></div></div>
+      <div class="row-between">
+        <div class="chk-row"><input type="checkbox" id="remember"/><label for="remember">Remember me</label></div>
+        <a href="#" class="forgot">Forgot password?</a>
+      </div>
+      <button class="btn-modal btn-modal-primary" id="l-btn" onclick="doLogin()">☀️ Sign In to PulmoAI</button>
+      <div class="divider"><div class="div-line"></div><div class="div-text">or</div><div class="div-line"></div></div>
+      <button class="btn-modal btn-modal-demo" onclick="doDemo()">🩻 Continue as Demo User</button>
+      <div class="switch-txt">No account? <a onclick="switchModal('signup')">Create one →</a></div>
+    </div>
+
+    <!-- SIGNUP -->
+    <div class="mpanel" id="mp-signup">
+      <div class="modal-title">Create account 🌅</div>
+      <div class="modal-sub">Join PulmoAI — takes only a moment.</div>
+      <div class="field"><label class="flabel">Full Name</label><div class="input-wrap"><span class="ico">👤</span><input type="text" id="s-name" placeholder="Dr. Jane Smith" autocomplete="name"/></div></div>
+      <div class="field"><label class="flabel">Email</label><div class="input-wrap"><span class="ico">✉️</span><input type="email" id="s-email" placeholder="doctor@hospital.com" autocomplete="email"/></div></div>
+      <div class="field"><label class="flabel">Password</label><div class="input-wrap"><span class="ico">🔒</span><input type="password" id="s-pass" placeholder="Min. 8 characters" oninput="strengthCheck(this.value)" autocomplete="new-password"/></div><div class="strength-bar"><div class="strength-fill" id="s-bar"></div></div></div>
+      <div class="field"><label class="flabel">Confirm Password</label><div class="input-wrap"><span class="ico">🔒</span><input type="password" id="s-confirm" placeholder="Repeat password" autocomplete="new-password"/></div><div class="err-msg" id="s-err"></div></div>
+      <button class="btn-modal btn-modal-primary" id="s-btn" onclick="doSignup()">🌅 Create Account</button>
+      <div class="switch-txt">Already have an account? <a onclick="switchModal('login')">Sign in →</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE -->
+<div class="wrap">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow">✦ Pulmonary AI Research Platform · v2.0</div>
+    <h1 class="hero-title">
+      AI-Powered<br>
+      <span class="gradient-text">Pulmonary</span><br>
+      Diagnostics
+    </h1>
+    <p class="hero-desc">Multi-model deep learning — lung segmentation, ensemble X-ray classification, Grad-CAM explainability, and RAG-powered clinical Q&A — all in one warm, intelligent platform.</p>
+    <div class="hero-btns">
+      <button class="btn-primary-hero" onclick="openModal('signup')">🌅 Get Started Free</button>
+      <button class="btn-outline-hero" onclick="openModal('login')">🔑 Sign In</button>
+      <a href="#models" class="btn-outline-hero">📖 Learn More</a>
+    </div>
+    <div class="stats-row">
+      <div class="stat-item"><div class="stat-val" style="color:var(--coral2)">14</div><div class="stat-lbl">Pathologies</div></div>
+      <div class="stat-item"><div class="stat-val" style="color:var(--gold2)">5</div><div class="stat-lbl">AI Models</div></div>
+      <div class="stat-item"><div class="stat-val" style="color:var(--rose2)">α=0.5</div><div class="stat-lbl">Ensemble Fusion</div></div>
+      <div class="stat-item"><div class="stat-val" style="color:var(--coral2)">Grad-CAM</div><div class="stat-lbl">Explainability</div></div>
+    </div>
+  </div>
+
+  <!-- MODELS -->
+  <section id="models">
+    <div class="sec-header"><div class="sec-tag tag-coral">AI Architecture</div><div class="sec-title">The <span>Model Stack</span></div><div class="sec-desc">Five specialized models working in concert for accurate, explainable pulmonary diagnostics.</div></div>
+    <div class="grid3">
+
+      <div class="model-card"><div class="model-card-top-stripe stripe-coral"></div>
+        <div class="mc-head"><div class="mc-icon mci-coral">🫁</div><span class="mc-badge badge-coral">SEGMENTATION</span></div>
+        <div class="mc-name">U-Net</div><div class="mc-role">Lung Segmentation</div>
+        <div class="mc-desc">Encoder-decoder with skip connections. Precise pixel-wise lung mask at 224×224 to focus classification on relevant anatomy.</div>
+        <div class="mc-tags"><span class="mc-tag">224×224</span><span class="mc-tag">Binary Mask</span><span class="mc-tag">Skip Connections</span></div>
+        <div class="mc-stat"><div><div class="ms-val" style="color:var(--coral2)">~95%</div><div class="ms-lbl">Dice Score</div><div class="ms-bar"><div class="ms-fill fill-coral" style="width:95%"></div></div></div></div>
+      </div>
+
+      <div class="model-card"><div class="model-card-top-stripe stripe-gold"></div>
+        <div class="mc-head"><div class="mc-icon mci-gold">🧠</div><span class="mc-badge badge-gold">CLASSIFIER α</span></div>
+        <div class="mc-name">ResNet-101</div><div class="mc-role">Primary Model</div>
+        <div class="mc-desc">101-layer residual network, ImageNet pretrained, fine-tuned on NIH ChestX-ray14 for 14-class multi-label classification.</div>
+        <div class="mc-tags"><span class="mc-tag">101 Layers</span><span class="mc-tag">Multi-label</span><span class="mc-tag">ResBlocks</span></div>
+        <div class="mc-stat"><div><div class="ms-val" style="color:var(--gold2)">14 cls</div><div class="ms-lbl">NIH ChestX-ray14</div><div class="ms-bar"><div class="ms-fill fill-gold" style="width:82%"></div></div></div></div>
+      </div>
+
+      <div class="model-card"><div class="model-card-top-stripe stripe-peach"></div>
+        <div class="mc-head"><div class="mc-icon mci-peach">⚡</div><span class="mc-badge badge-peach">CLASSIFIER β</span></div>
+        <div class="mc-name">EfficientNet-B0</div><div class="mc-role">Efficient Model</div>
+        <div class="mc-desc">NAS-optimized compound-scaled network. Competitive accuracy at lower compute — ideal second branch for ensemble fusion.</div>
+        <div class="mc-tags"><span class="mc-tag">NAS</span><span class="mc-tag">Compound Scaling</span><span class="mc-tag">Efficient</span></div>
+        <div class="mc-stat"><div><div class="ms-val" style="color:#c07840">Low FLOPs</div><div class="ms-lbl">High Efficiency</div><div class="ms-bar"><div class="ms-fill" style="width:88%;background:linear-gradient(90deg,var(--peach2),var(--gold))"></div></div></div></div>
+      </div>
+
+      <div class="model-card"><div class="model-card-top-stripe stripe-rose"></div>
+        <div class="mc-head"><div class="mc-icon mci-rose">🔀</div><span class="mc-badge badge-rose">FUSION</span></div>
+        <div class="mc-name">Hybrid Ensemble</div><div class="mc-role">α=0.5 Weighted Fusion</div>
+        <div class="mc-desc">Equal-weight linear fusion of both classifiers. Per-class thresholds calibrated independently for each of the 14 pathologies.</div>
+        <div class="mc-tags"><span class="mc-tag">α=0.5</span><span class="mc-tag">Per-class Thresholds</span></div>
+        <div class="mc-stat"><div><div class="ms-val" style="color:var(--rose2)">Optimal</div><div class="ms-lbl">Calibrated</div><div class="ms-bar"><div class="ms-fill fill-rose" style="width:91%"></div></div></div></div>
+      </div>
+
+      <div class="model-card"><div class="model-card-top-stripe stripe-coral"></div>
+        <div class="mc-head"><div class="mc-icon mci-coral">🔥</div><span class="mc-badge badge-coral">XAI</span></div>
+        <div class="mc-name">Grad-CAM</div><div class="mc-role">Explainability</div>
+        <div class="mc-desc">Gradient-weighted Class Activation Mapping. Heatmaps show which X-ray regions drove the top prediction — last conv layer.</div>
+        <div class="mc-tags"><span class="mc-tag">Gradients</span><span class="mc-tag">Heatmap</span><span class="mc-tag">Last Conv</span></div>
+        <div class="mc-stat"><div><div class="ms-val" style="color:var(--coral2)">XAI</div><div class="ms-lbl">Transparent AI</div><div class="ms-bar"><div class="ms-fill fill-coral" style="width:100%"></div></div></div></div>
+      </div>
+
+      <div class="model-card"><div class="model-card-top-stripe stripe-sky"></div>
+        <div class="mc-head"><div class="mc-icon mci-sky">💬</div><span class="mc-badge badge-gold">RAG · LLM</span></div>
+        <div class="mc-name">RAG Pipeline</div><div class="mc-role">Clinical Assistant</div>
+        <div class="mc-desc">FAISS-indexed medical corpus + LLaMA 3.2 3B for evidence-grounded answers to clinical pulmonary disease questions.</div>
+        <div class="mc-tags"><span class="mc-tag">FAISS</span><span class="mc-tag">LLaMA 3.2 3B</span><span class="mc-tag">14 diseases</span></div>
+        <div class="mc-stat"><div><div class="ms-val" style="color:var(--gold2)">RAG</div><div class="ms-lbl">Evidence-Grounded</div><div class="ms-bar"><div class="ms-fill fill-gold" style="width:100%"></div></div></div></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- PIPELINE -->
+  <section id="pipeline">
+    <div class="sec-header"><div class="sec-tag tag-gold">Inference Flow</div><div class="sec-title">End-to-End <span>Pipeline</span></div><div class="sec-desc">From raw X-ray to explainable multi-label diagnosis in five automated steps.</div></div>
+    <div class="pipe-card">
+      <div class="pipe-stripe"></div>
+      <div class="pipe-scan"></div>
+      <div class="pipe-steps">
+        <div class="pipe-step"><div class="ps-icon psi-1">📥</div><div class="ps-name">Image Input</div><div class="ps-model">Preprocessing</div><div class="ps-desc">Upload JPEG/PNG, resize 224×224, normalize</div></div>
+        <div class="pipe-step"><div class="ps-icon psi-2">🫁</div><div class="ps-name">Segmentation</div><div class="ps-model">U-Net</div><div class="ps-desc">Binary lung mask, ROI isolation</div></div>
+        <div class="pipe-step"><div class="ps-icon psi-3">🧠</div><div class="ps-name">Dual Classify</div><div class="ps-model">ResNet + EfficientNet</div><div class="ps-desc">Parallel 14-class probability vectors</div></div>
+        <div class="pipe-step"><div class="ps-icon psi-4">🔀</div><div class="ps-name">Ensemble</div><div class="ps-model">Hybrid α=0.5</div><div class="ps-desc">Weighted fusion + per-class thresholds</div></div>
+        <div class="pipe-step"><div class="ps-icon psi-5">🔥</div><div class="ps-name">Grad-CAM</div><div class="ps-model">XAI</div><div class="ps-desc">Heatmap overlay on top detection</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PATHOLOGIES -->
+  <section id="pathologies">
+    <div class="sec-header"><div class="sec-tag tag-rose">Coverage</div><div class="sec-title">14 <span>Pathologies</span> Detected</div><div class="sec-desc">Per-class threshold calibrated for optimal sensitivity-specificity per condition.</div></div>
+    <div class="path-grid">
+      <div class="path-chip"><span class="path-chip-icon">🫁</span>Atelectasis<br><span style="color:var(--coral2);font-size:10px;">τ=0.65</span></div>
+      <div class="path-chip"><span class="path-chip-icon">❤️</span>Cardiomegaly<br><span style="color:var(--coral2);font-size:10px;">τ=0.80</span></div>
+      <div class="path-chip"><span class="path-chip-icon">🔵</span>Consolidation<br><span style="color:var(--coral2);font-size:10px;">τ=0.70</span></div>
+      <div class="path-chip"><span class="path-chip-icon">💧</span>Edema<br><span style="color:var(--coral2);font-size:10px;">τ=0.85</span></div>
+      <div class="path-chip"><span class="path-chip-icon">🌊</span>Effusion<br><span style="color:var(--coral2);font-size:10px;">τ=0.70</span></div>
+      <div class="path-chip"><span class="path-chip-icon">💨</span>Emphysema<br><span style="color:var(--coral2);font-size:10px;">τ=0.75</span></div>
+      <div class="path-chip"><span class="path-chip-icon">🕸️</span>Fibrosis<br><span style="color:var(--coral2);font-size:10px;">τ=0.70</span></div>
+      <div class="path-chip"><span class="path-chip-icon">⚙️</span>Hernia<br><span style="color:var(--coral2);font-size:10px;">τ=0.85</span></div>
+      <div class="path-chip"><span class="path-chip-icon">☁️</span>Infiltration<br><span style="color:var(--coral2);font-size:10px;">τ=0.60</span></div>
+      <div class="path-chip"><span class="path-chip-icon">🔴</span>Mass<br><span style="color:var(--coral2);font-size:10px;">τ=0.75</span></div>
+      <div class="path-chip"><span class="path-chip-icon">⚪</span>Nodule<br><span style="color:var(--coral2);font-size:10px;">τ=0.70</span></div>
+      <div class="path-chip"><span class="path-chip-icon">📑</span>Pleural Thick.<br><span style="color:var(--coral2);font-size:10px;">τ=0.70</span></div>
+      <div class="path-chip"><span class="path-chip-icon">🦠</span>Pneumonia<br><span style="color:var(--coral2);font-size:10px;">τ=0.75</span></div>
+      <div class="path-chip"><span class="path-chip-icon">💥</span>Pneumothorax<br><span style="color:var(--coral2);font-size:10px;">τ=0.70</span></div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section id="features">
+    <div class="sec-header"><div class="sec-tag tag-coral">Platform</div><div class="sec-title">Everything You <span>Need</span></div></div>
+    <div class="grid2">
+      <div class="feat-card"><div class="feat-icon fi-coral">🎯</div><div><div class="feat-title">Per-Class Threshold Calibration</div><div class="feat-desc">Each of 14 pathologies has an independently optimized detection threshold for best precision-recall tradeoff per disease.</div></div></div>
+      <div class="feat-card"><div class="feat-icon fi-gold">🗄️</div><div><div class="feat-title">FAISS RAG Knowledge Base</div><div class="feat-desc">Vector-indexed medical literature + LLaMA 3.2 3B for structured, evidence-grounded answers to clinical pulmonary questions.</div></div></div>
+      <div class="feat-card"><div class="feat-icon fi-peach">📊</div><div><div class="feat-title">Probability Visualization</div><div class="feat-desc">Animated bars rank top 8 pathologies by confidence. Colour-coded by threshold: warm red = detected, amber = borderline, soft green = negative.</div></div></div>
+      <div class="feat-card"><div class="feat-icon fi-rose">🔍</div><div><div class="feat-title">Grad-CAM Explainability</div><div class="feat-desc">Heatmaps show exactly which regions drove the model's top prediction — transparent AI for clinical review.</div></div></div>
+      <div class="feat-card"><div class="feat-icon fi-gold">⚡</div><div><div class="feat-title">Fast Inference</div><div class="feat-desc">Segmentation, dual classification, ensemble fusion, and CAM — all in under 3 seconds per image.</div></div></div>
+      <div class="feat-card"><div class="feat-icon fi-coral">🔐</div><div><div class="feat-title">Real Session Auth</div><div class="feat-desc">Server-side session tokens with HttpOnly cookies. Every page and API requires a valid authenticated session — no bypass possible.</div></div></div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <div class="cta-section">
+    <div class="cta-title">Start <span style="background:linear-gradient(135deg,var(--coral2),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Analyzing</span> Now</div>
+    <div class="cta-desc">Create a free account and open the analysis tool to upload chest X-rays and explore the RAG clinical assistant.</div>
+    <div class="cta-btns">
+      <button class="btn-cta-main" onclick="openModal('signup')">🌅 Create Free Account</button>
+      <button class="btn-outline-hero" onclick="openModal('login')" style="background:rgba(255,255,255,0.7);">🔑 Sign In</button>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div class="footer-brand"><div class="footer-icon">🫁</div><div class="footer-name">PulmoAI</div></div>
+  <div class="footer-copy">For research and educational purposes only · Not for clinical use</div>
+</footer>
+<div class="toast" id="toast"></div>
+
+<script>
+function toast(msg,type=''){const el=document.getElementById('toast');el.textContent=msg;el.className='toast show '+type;setTimeout(()=>el.className='toast',3500);}
+function openModal(tab){document.getElementById('modal-overlay').classList.add('open');switchModal(tab);document.body.style.overflow='hidden';setTimeout(()=>document.getElementById(tab==='login'?'l-email':'s-name').focus(),150);}
+function closeModal(){document.getElementById('modal-overlay').classList.remove('open');document.body.style.overflow='';clearErrs();}
+function closeIfBg(e){if(e.target===document.getElementById('modal-overlay'))closeModal();}
+function switchModal(t){['login','signup'].forEach(x=>{document.getElementById('mt-'+x).classList.toggle('active',x===t);document.getElementById('mp-'+x).classList.toggle('active',x===t);});clearErrs();}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape')closeModal();
+  if(e.key==='Enter'&&document.getElementById('modal-overlay').classList.contains('open')){
+    if(document.getElementById('mp-login').classList.contains('active'))doLogin();else doSignup();
+  }
+});
+function setErr(id,msg){const el=document.getElementById(id);el.textContent=msg;el.classList.add('show');}
+function clearErrs(){document.querySelectorAll('.err-msg').forEach(e=>e.classList.remove('show'));document.querySelectorAll('.mpanel input').forEach(i=>i.classList.remove('err'));}
+function setBusy(id,busy,def){const b=document.getElementById(id);b.disabled=busy;b.innerHTML=busy?'<span style="display:inline-block;animation:spin .7s linear infinite">⟳</span> Please wait...':def;}
+function strengthCheck(v){let s=[v.length>=8,/[A-Z]/.test(v),/\d/.test(v),/[^A-Za-z0-9]/.test(v)].filter(Boolean).length;const b=document.getElementById('s-bar');b.style.width=s*25+'%';b.style.background=['','#ff8589','#f4a220','#f4a220','#22c55e'][s];}
+function setLoggedIn(name){document.getElementById('nav-buttons').classList.add('hidden');document.getElementById('nav-user-pill').classList.add('visible');document.getElementById('nav-name').textContent=name;}
+function setLoggedOut(){document.getElementById('nav-buttons').classList.remove('hidden');document.getElementById('nav-user-pill').classList.remove('visible');}
+async function checkSession(){try{const r=await fetch('/auth/me');if(r.ok){const d=await r.json();setLoggedIn(d.name);}else setLoggedOut();}catch{setLoggedOut();}}
+async function doLogin(){
+  clearErrs();
+  const email=document.getElementById('l-email').value.trim(),pass=document.getElementById('l-pass').value;
+  if(!email){document.getElementById('l-email').classList.add('err');setErr('l-err','Email is required');return;}
+  if(!pass){document.getElementById('l-pass').classList.add('err');setErr('l-err','Password is required');return;}
+  setBusy('l-btn',true,'☀️ Sign In to PulmoAI');
+  try{
+    const r=await fetch('/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})});
+    const d=await r.json();
+    if(!r.ok){document.getElementById('l-pass').classList.add('err');setErr('l-err',d.detail||'Incorrect email or password');toast('❌ '+(d.detail||'Login failed'),'fail');}
+    else{closeModal();toast('✓ Welcome back, '+d.name+'! 🌅','ok');setTimeout(()=>location.href=d.redirect,700);}
+  }catch{setErr('l-err','Cannot reach server — is the backend running?');toast('❌ Server not reachable','fail');}
+  finally{setBusy('l-btn',false,'☀️ Sign In to PulmoAI');}
+}
+async function doSignup(){
+  clearErrs();
+  const name=document.getElementById('s-name').value.trim(),email=document.getElementById('s-email').value.trim(),pass=document.getElementById('s-pass').value,confirm=document.getElementById('s-confirm').value;
+  if(!name){setErr('s-err','Full name is required');return;}
+  if(!email||!email.includes('@')){setErr('s-err','Valid email is required');return;}
+  if(pass.length<8){setErr('s-err','Password must be at least 8 characters');return;}
+  if(pass!==confirm){document.getElementById('s-confirm').classList.add('err');setErr('s-err','Passwords do not match');return;}
+  setBusy('s-btn',true,'🌅 Create Account');
+  try{
+    const r=await fetch('/auth/signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,password:pass})});
+    const d=await r.json();
+    if(!r.ok){setErr('s-err',d.detail||'Signup failed');toast('❌ '+(d.detail||'Signup failed'),'fail');}
+    else{closeModal();toast('✓ Welcome, '+d.name+'! Opening app... 🌅','ok');setTimeout(()=>location.href=d.redirect,700);}
+  }catch{setErr('s-err','Cannot reach server — is the backend running?');toast('❌ Server not reachable','fail');}
+  finally{setBusy('s-btn',false,'🌅 Create Account');}
+}
+async function doDemo(){
+  try{const r=await fetch('/auth/demo',{method:'POST'});const d=await r.json();if(r.ok){closeModal();toast('✓ Loading demo... 🌅','ok');setTimeout(()=>location.href=d.redirect,600);}else toast('❌ Demo failed','fail');}
+  catch{toast('❌ Server not reachable','fail');}
+}
+async function doLogout(){await fetch('/auth/logout',{method:'POST'});setLoggedOut();toast('✓ Signed out','ok');}
+document.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();document.querySelector(a.getAttribute('href'))?.scrollIntoView({behavior:'smooth'});}));
+const secs=document.querySelectorAll('section[id]');
+window.addEventListener('scroll',()=>{const y=window.scrollY+100;secs.forEach(s=>{const l=document.querySelector(`.nav-link[href="#${s.id}"]`);if(l)l.classList.toggle('active',y>=s.offsetTop&&y<s.offsetTop+s.offsetHeight);});});
+setTimeout(()=>{document.querySelectorAll('.ms-fill').forEach(el=>{const w=el.style.width;el.style.width='0';setTimeout(()=>el.style.transition='width 1.4s cubic-bezier(.34,1.56,.64,1)',50);setTimeout(()=>el.style.width=w,100);});},400);
+checkSession();
+</script>
+</body>
+</html>

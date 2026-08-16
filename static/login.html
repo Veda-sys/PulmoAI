@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PulmoAI — Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#04070d;--bg2:#080f1a;--bg3:#0d1828;
+  --border:#162236;--border2:#1e3050;
+  --accent:#00c8ff;--accent2:#0090c0;
+  --green:#00ffaa;--green2:#00b87a;
+  --danger:#ff4d6d;--warn:#ffb84d;
+  --text:#c8dce8;--muted:#4a6a84;
+  --white:#ffffff;--card:#091422;--card2:#0c1c30;
+  --font:'Outfit',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-weight:300;min-height:100vh;overflow-x:hidden;display:flex;align-items:center;justify-content:center;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,200,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,200,255,0.025) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0;}
+.orb{position:fixed;border-radius:50%;filter:blur(90px);pointer-events:none;z-index:0;}
+.orb-1{width:600px;height:600px;background:radial-gradient(circle,rgba(0,200,255,0.18),transparent);top:-200px;right:-150px;animation:drift 14s ease-in-out infinite alternate;}
+.orb-2{width:500px;height:500px;background:radial-gradient(circle,rgba(0,255,170,0.12),transparent);bottom:-150px;left:-150px;animation:drift 18s ease-in-out infinite alternate-reverse;}
+@keyframes drift{from{transform:translate(0,0) scale(1);}to{transform:translate(40px,25px) scale(1.1);}}
+.page{position:relative;z-index:1;display:flex;min-height:100vh;width:100%;}
+.left-panel{flex:1;display:flex;flex-direction:column;justify-content:center;padding:60px;background:linear-gradient(135deg,rgba(0,200,255,0.04),rgba(0,255,170,0.02));border-right:1px solid var(--border);position:relative;overflow:hidden;}
+.left-panel::after{content:'';position:absolute;top:0;right:0;width:1px;height:100%;background:linear-gradient(to bottom,transparent,var(--accent),transparent);}
+.brand{display:flex;align-items:center;gap:16px;margin-bottom:60px;}
+.brand-icon{width:52px;height:52px;background:linear-gradient(135deg,var(--accent),var(--green));border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 0 28px rgba(0,200,255,0.5);}
+.brand-name{font-size:26px;font-weight:800;color:var(--white);letter-spacing:-0.5px;}
+.brand-sub{font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;font-family:var(--mono);}
+.hero-title{font-size:48px;font-weight:800;color:var(--white);line-height:1.1;letter-spacing:-1.5px;margin-bottom:20px;}
+.hero-title span{background:linear-gradient(90deg,var(--accent),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.hero-desc{font-size:16px;color:var(--muted);line-height:1.7;max-width:420px;margin-bottom:48px;}
+.feature-list{display:flex;flex-direction:column;gap:14px;}
+.feature-item{display:flex;align-items:center;gap:14px;padding:14px 18px;background:rgba(0,200,255,0.04);border:1px solid var(--border);border-radius:12px;}
+.feature-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+.feature-icon.blue{background:rgba(0,200,255,0.15);box-shadow:0 0 12px rgba(0,200,255,0.2);}
+.feature-icon.green{background:rgba(0,255,170,0.12);box-shadow:0 0 12px rgba(0,255,170,0.15);}
+.feature-icon.warn{background:rgba(255,184,77,0.12);box-shadow:0 0 12px rgba(255,184,77,0.15);}
+.feature-text{font-size:14px;color:var(--text);}
+.feature-text strong{color:var(--white);font-weight:600;}
+.pulse-ring{position:absolute;bottom:-80px;left:-80px;width:400px;height:400px;border:1px solid rgba(0,200,255,0.06);border-radius:50%;}
+.pulse-ring-2{position:absolute;bottom:-160px;left:-160px;width:560px;height:560px;border:1px solid rgba(0,255,170,0.04);border-radius:50%;}
+.right-panel{width:480px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 48px;}
+.auth-card{width:100%;max-width:380px;}
+.auth-tab-row{display:flex;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:4px;margin-bottom:32px;}
+.auth-tab{flex:1;padding:10px;border:none;background:none;color:var(--muted);font-family:var(--font);font-size:14px;font-weight:500;border-radius:8px;cursor:pointer;transition:all 0.2s;}
+.auth-tab.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--bg);font-weight:600;}
+.form-title{font-size:26px;font-weight:700;color:var(--white);margin-bottom:6px;letter-spacing:-0.5px;}
+.form-sub{font-size:13px;color:var(--muted);margin-bottom:28px;line-height:1.5;}
+.form-group{margin-bottom:18px;}
+.form-label{display:block;font-size:11px;font-family:var(--mono);letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.form-input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;color:var(--white);font-family:var(--font);font-size:14px;font-weight:400;padding:13px 16px;outline:none;transition:border-color 0.2s,box-shadow 0.2s;}
+.form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,200,255,0.1);}
+.form-input::placeholder{color:var(--muted);}
+.input-with-icon{position:relative;}
+.input-with-icon .form-input{padding-left:42px;}
+.input-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none;}
+.form-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+.remember-row{display:flex;align-items:center;gap:8px;}
+.remember-check{width:16px;height:16px;accent-color:var(--accent);cursor:pointer;}
+.remember-label{font-size:13px;color:var(--muted);cursor:pointer;}
+.forgot-link{font-size:13px;color:var(--accent);text-decoration:none;font-family:var(--mono);}
+.forgot-link:hover{color:var(--green);}
+.btn-submit{width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:10px;color:var(--bg);font-family:var(--font);font-size:15px;font-weight:700;padding:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:opacity 0.2s,transform 0.15s,box-shadow 0.2s;box-shadow:0 4px 20px rgba(0,200,255,0.3);margin-bottom:20px;}
+.btn-submit:hover{opacity:0.9;transform:translateY(-1px);}
+.divider{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.divider-line{flex:1;height:1px;background:var(--border);}
+.divider-text{font-size:11px;font-family:var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+.btn-demo{width:100%;background:transparent;border:1px solid var(--border2);border-radius:10px;color:var(--text);font-family:var(--font);font-size:14px;font-weight:500;padding:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:border-color 0.2s,color 0.2s,background 0.2s;}
+.btn-demo:hover{border-color:var(--green);color:var(--green);background:rgba(0,255,170,0.04);}
+.auth-switch{text-align:center;margin-top:24px;font-size:13px;color:var(--muted);}
+.auth-switch a{color:var(--accent);text-decoration:none;font-weight:500;cursor:pointer;}
+.auth-switch a:hover{color:var(--green);}
+.form-panel{display:none;}
+.form-panel.active{display:block;animation:fadeUp 0.3s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+.strength-bar{height:4px;border-radius:2px;background:var(--border);margin-top:8px;overflow:hidden;}
+.strength-fill{height:100%;border-radius:2px;transition:width 0.3s,background 0.3s;}
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--card2);border:1px solid var(--border2);border-radius:12px;padding:12px 24px;font-size:13px;color:var(--text);box-shadow:0 8px 32px rgba(0,0,0,0.5);z-index:100;opacity:0;transition:all 0.3s;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.success{border-color:rgba(0,255,170,0.4);color:var(--green);}
+.toast.error{border-color:rgba(255,77,109,0.4);color:var(--danger);}
+@media(max-width:860px){.left-panel{display:none;}.right-panel{width:100%;padding:40px 24px;}}
+::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+</style>
+</head>
+<body>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="page">
+
+  <div class="left-panel">
+    <div class="pulse-ring"></div>
+    <div class="pulse-ring-2"></div>
+    <div class="brand">
+      <div class="brand-icon">🫁</div>
+      <div>
+        <div class="brand-name">PulmoAI</div>
+        <div class="brand-sub">Pulmonary Intelligence System</div>
+      </div>
+    </div>
+    <div class="hero-title">AI-Powered<br><span>Pulmonary</span><br>Diagnostics</div>
+    <div class="hero-desc">Advanced multi-model analysis pipeline for chest X-ray classification, lung segmentation, and RAG-powered clinical insights.</div>
+    <div class="feature-list">
+      <div class="feature-item">
+        <div class="feature-icon blue">🔬</div>
+        <div class="feature-text"><strong>14-Pathology Classifier</strong> — ResNet-101 + EfficientNet-B0 ensemble with per-class thresholds</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon green">🫁</div>
+        <div class="feature-text"><strong>U-Net Segmentation</strong> — Precise lung mask extraction with 224×224 resolution overlays</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon warn">💬</div>
+        <div class="feature-text"><strong>RAG Knowledge Pipeline</strong> — Evidence-based clinical Q&A grounded in medical literature</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="right-panel">
+    <div class="auth-card">
+      <div class="auth-tab-row">
+        <button class="auth-tab active" onclick="switchAuth('login',this)">Sign In</button>
+        <button class="auth-tab" onclick="switchAuth('signup',this)">Sign Up</button>
+      </div>
+
+      <!-- LOGIN -->
+      <div class="form-panel active" id="login-panel">
+        <div class="form-title">Welcome back</div>
+        <div class="form-sub">Sign in to access your PulmoAI dashboard and analysis history.</div>
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <div class="input-with-icon">
+            <span class="input-icon">✉️</span>
+            <input type="email" class="form-input" placeholder="doctor@hospital.com" id="login-email"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div class="input-with-icon">
+            <span class="input-icon">🔒</span>
+            <input type="password" class="form-input" placeholder="••••••••" id="login-pass"/>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="remember-row">
+            <input type="checkbox" class="remember-check" id="remember"/>
+            <label for="remember" class="remember-label">Remember me</label>
+          </div>
+          <a href="#" class="forgot-link">Forgot password?</a>
+        </div>
+        <button class="btn-submit" onclick="handleLogin()"><span>⚡</span> Sign In to PulmoAI</button>
+        <div class="divider"><div class="divider-line"></div><div class="divider-text">or</div><div class="divider-line"></div></div>
+        <button class="btn-demo" onclick="demoLogin()">🩻 Continue as Demo User</button>
+        <div class="auth-switch">Don't have an account? <a onclick="switchAuth('signup',document.querySelectorAll('.auth-tab')[1])">Create one</a></div>
+      </div>
+
+      <!-- SIGNUP -->
+      <div class="form-panel" id="signup-panel">
+        <div class="form-title">Create account</div>
+        <div class="form-sub">Join PulmoAI to access advanced pulmonary AI diagnostics.</div>
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <div class="input-with-icon">
+            <span class="input-icon">👤</span>
+            <input type="text" class="form-input" placeholder="Dr. Jane Smith" id="signup-name"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <div class="input-with-icon">
+            <span class="input-icon">✉️</span>
+            <input type="email" class="form-input" placeholder="doctor@hospital.com" id="signup-email"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div class="input-with-icon">
+            <span class="input-icon">🔒</span>
+            <input type="password" class="form-input" placeholder="Min. 8 characters" id="signup-pass" oninput="checkStrength(this.value)"/>
+          </div>
+          <div class="strength-bar"><div class="strength-fill" id="strength-fill" style="width:0%"></div></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirm Password</label>
+          <div class="input-with-icon">
+            <span class="input-icon">🔒</span>
+            <input type="password" class="form-input" placeholder="Repeat password" id="signup-confirm"/>
+          </div>
+        </div>
+        <button class="btn-submit" onclick="handleSignup()"><span>🚀</span> Create Account</button>
+        <div class="auth-switch">Already have an account? <a onclick="switchAuth('login',document.querySelectorAll('.auth-tab')[0])">Sign in</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+function switchAuth(panel,btn){document.querySelectorAll('.auth-tab').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.form-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');document.getElementById(panel+'-panel').classList.add('active');}
+function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show '+type;setTimeout(()=>t.className='toast',3000);}
+function handleLogin(){const e=document.getElementById('login-email').value.trim(),p=document.getElementById('login-pass').value;if(!e||!p){showToast('Please fill in all fields','error');return;}if(!e.includes('@')){showToast('Enter a valid email address','error');return;}showToast('✓ Signing you in...','success');setTimeout(()=>window.location.href='/home',1200);}
+function demoLogin(){showToast('✓ Loading demo session...','success');setTimeout(()=>window.location.href='/home',1000);}
+function handleSignup(){const n=document.getElementById('signup-name').value.trim(),e=document.getElementById('signup-email').value.trim(),p=document.getElementById('signup-pass').value,c=document.getElementById('signup-confirm').value;if(!n||!e||!p||!c){showToast('Please fill in all fields','error');return;}if(!e.includes('@')){showToast('Enter a valid email address','error');return;}if(p!==c){showToast('Passwords do not match','error');return;}if(p.length<8){showToast('Password must be at least 8 characters','error');return;}showToast('✓ Account created! Redirecting...','success');setTimeout(()=>window.location.href='/home',1200);}
+function checkStrength(val){const f=document.getElementById('strength-fill');let s=0;if(val.length>=8)s++;if(/[A-Z]/.test(val))s++;if(/[0-9]/.test(val))s++;if(/[^A-Za-z0-9]/.test(val))s++;f.style.width=(s*25)+'%';f.style.background=['#ff4d6d','#ff4d6d','#ffb84d','#ffb84d','#00ffaa'][s];}
+</script>
+</body>
+</html>

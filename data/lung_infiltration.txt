@@ -1,0 +1,57 @@
+Disease Name: Pulmonary Infiltration (Lung Infiltrate)
+
+Overview:
+Pulmonary infiltration refers to substances such as fluid, pus, blood, or cells accumulating within lung tissue. These appear as abnormal dense areas on chest imaging such as X-rays or CT scans. It is not a disease itself but a sign of an underlying lung condition.
+
+Symptoms:
+Cough
+Shortness of breath
+Fever
+Chest pain
+Fatigue
+Difficulty breathing
+
+Causes:
+Pneumonia
+Tuberculosis
+Pulmonary edema
+Lung hemorrhage
+Cancer
+Inflammatory diseases
+Aspiration of food or liquids
+ARDS
+
+Risk Factors:
+Smoking
+Weak immune system
+Chronic lung disease
+Hospitalization
+Air pollution exposure
+
+Diagnosis:
+Chest X-ray
+CT scan
+Blood tests
+Sputum tests
+Bronchoscopy
+Lung biopsy in severe cases
+
+Treatment:
+Antibiotics for bacterial infections
+Antiviral or antifungal medications
+Anti-inflammatory medicines
+Oxygen therapy
+Hospital treatment if severe
+
+Complications:
+Respiratory failure
+Severe infection
+Lung damage
+Low oxygen levels
+
+Prevention and Precautions:
+Avoid smoking
+Vaccinations
+Good hygiene
+Early treatment of infections
+Protective masks in polluted areas
